@@ -7,10 +7,11 @@ var querystring	= require('querystring');
  * @param {String} key    API Key
  * @param {String} secret API Secret
  * @param {String} [otp]  Two-factor password (optional) (also, doesn't work)
- * @param {Object} [headers]  Additional headers (optional)
+ * @param {Boolean} [trading_agreement]  aggree to trading agreement (optional)
  */
-function KrakenClient(key, secret, otp, headers) {
+function KrakenClient(key, secret, otp, trading_agreement) {
 	var self = this;
+	trading_agreement = ( trading_agreement === undefined ? false : trading_agreement );
 
 	var config = {
 		url: 'https://api.kraken.com',
@@ -57,9 +58,7 @@ function KrakenClient(key, secret, otp, headers) {
 		var path	= '/' + config.version + '/public/' + method;
 		var url		= config.url + path;
 		
-		var reqHeaders = ( headers !== undefined ? headers : {} );
-
-		return rawRequest(url, reqHeaders, params, callback);
+		return rawRequest(url, {}, params, callback);
 	}
 
 	/**
@@ -83,6 +82,10 @@ function KrakenClient(key, secret, otp, headers) {
 			params.otp = config.otp;
 		}
 
+		if ( trading_agreement ){
+			params.trading_agreement = 'agree';
+		}
+
 		var signature = getMessageSignature(path, params, params.nonce);
 
 		var reqHeaders = {
@@ -90,10 +93,6 @@ function KrakenClient(key, secret, otp, headers) {
 			'API-Sign': signature
 		};
 		
-		if ( headers !== undefined ){
-			reqHeaders = Object.assign(reqHeaders, headers);
-		};
-
 		return rawRequest(url, reqHeaders, params, callback);
 	}
 
