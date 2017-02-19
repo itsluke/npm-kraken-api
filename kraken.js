@@ -7,8 +7,9 @@ var querystring	= require('querystring');
  * @param {String} key    API Key
  * @param {String} secret API Secret
  * @param {String} [otp]  Two-factor password (optional) (also, doesn't work)
+ * @param {Object} [headers]  Additional headers (optional)
  */
-function KrakenClient(key, secret, otp) {
+function KrakenClient(key, secret, otp, headers) {
 	var self = this;
 
 	var config = {
@@ -55,8 +56,10 @@ function KrakenClient(key, secret, otp) {
 
 		var path	= '/' + config.version + '/public/' + method;
 		var url		= config.url + path;
+		
+		var reqHeaders = ( headers !== undefined ? headers : {} );
 
-		return rawRequest(url, {}, params, callback);
+		return rawRequest(url, reqHeaders, params, callback);
 	}
 
 	/**
@@ -82,12 +85,16 @@ function KrakenClient(key, secret, otp) {
 
 		var signature = getMessageSignature(path, params, params.nonce);
 
-		var headers = {
+		var reqHeaders = {
 			'API-Key': config.key,
 			'API-Sign': signature
 		};
+		
+		if ( headers !== undefined ){
+			reqHeaders = Object.assign(reqHeaders, headers);
+		};
 
-		return rawRequest(url, headers, params, callback);
+		return rawRequest(url, reqHeaders, params, callback);
 	}
 
 	/**
